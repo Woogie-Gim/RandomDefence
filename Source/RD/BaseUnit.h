@@ -1,0 +1,38 @@
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameFramework/Character.h"
+#include "BaseUnit.generated.h"
+
+// 전방 선언
+class UDecalComponent; 
+
+UCLASS()
+class RD_API ABaseUnit : public ACharacter
+{
+	GENERATED_BODY()
+
+public:
+	// Sets default values for this character's properties
+	ABaseUnit();
+
+protected:
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
+
+public:	
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
+
+	// Called to bind functionality to input
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	// 유니 선택 / 해제 함수 (Controller에서 호출)
+	void SetSelectionState(bool bIsSelected);
+
+protected:
+	// 발 밑에 표시될 원
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Visuals")
+	TObjectPtr<UDecalComponent> SelectionDecal;
+};
