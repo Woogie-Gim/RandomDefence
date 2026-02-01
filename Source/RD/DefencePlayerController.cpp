@@ -25,6 +25,16 @@ void ADefencePlayerController::BeginPlay()
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
 	}
+
+	// UI 생성 및 화면 부착
+	if (MainHUDClass)
+	{
+		MainHUDInstance = CreateWidget<UUserWidget>(this, MainHUDClass);
+		if (MainHUDInstance)
+		{
+			MainHUDInstance->AddToViewport();
+		}
+	}
 }
 
 void ADefencePlayerController::SetupInputComponent()

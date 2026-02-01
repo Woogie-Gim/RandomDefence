@@ -3,6 +3,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "Blueprint/UserWidget.h"
 #include "DefencePlayerController.generated.h"
 
 class UInputMappingContext;
@@ -38,4 +39,12 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> MoveAction;	
+
+	// 에디터에서 WBP_MainHUD를 지정할 변수
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<UUserWidget> MainHUDClass;
+
+	// 생성된 위젯을 담아둘 변수
+	UPROPERTY()
+	TObjectPtr<UUserWidget> MainHUDInstance;
 };
