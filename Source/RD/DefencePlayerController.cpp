@@ -5,6 +5,8 @@
 #include "EnhancedInputSubsystems.h"
 #include "BaseUnit.h"
 #include "Blueprint/AIBlueprintHelperLibrary.h" // 이동 명령용
+#include "DefenceHUD.h"
+#include "Framework/Application/SlateApplication.h" // 마우스 좌표 가져오기용
 
 ADefencePlayerController::ADefencePlayerController()
 {
@@ -16,6 +18,9 @@ ADefencePlayerController::ADefencePlayerController()
 void ADefencePlayerController::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// 내 HUD
+	DefenceHUD = Cast<ADefenceHUD>(GetHUD());
 
 	// 입력 시스템 활성화
 	if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
@@ -43,45 +48,77 @@ void ADefencePlayerController::SetupInputComponent()
 
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(InputComponent))
 	{
-		// 좌클릭 -> 선택, 우클릭 -> 이동
-		if (SelectAction) EnhancedInputComponent->BindAction(SelectAction, ETriggerEvent::Started, this, &ADefencePlayerController::HandleSelect);
+		// SelectAction(좌클릭)에 3r가지 타이밍 연결
+		// 1. Started : 누르자마자 (초기화)
+		EnhancedInputComponent->BindAction(SelectAction, ETriggerEvent::Started, this, &ADefencePlayerController::HandleSelectStart);
+		// 2. Triggered : 누르고 있는 동안(사각형 그리기)
+		EnhancedInputComponent->BindAction(SelectAction, ETriggerEvent::Triggered, this, &ADefencePlayerController::HandleSelectTriggered);
+		// 3. Completed : 손을 뗐을 때 (유닛 찾기)
+		EnhancedInputComponent->BindAction(SelectAction, ETriggerEvent::Completed, this, &ADefencePlayerController::HandleSelectComplete);
+		
+		// 유닛 무빙
 		if (MoveAction) EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Started, this, &ADefencePlayerController::HandleMove);
 	}
 }
 
-void ADefencePlayerController::HandleSelect()
+// 1. 마우스 클릭 (초기화 단계)
+void ADefencePlayerController::HandleSelectStart()
 {
-	FHitResult Hit;
-	GetHitResultUnderCursor(ECC_Visibility, false, Hit);
-
-	if (Hit.bBlockingHit)
+	// 기존에 선택된 유닛들 모두 해제 (원형 끄기)
+	for (ABaseUnit* Unit : SelectedUnits)
 	{
-		ABaseUnit* NewUnit = Cast<ABaseUnit>(Hit.GetActor());
+		if (Unit) Unit->SetSelectionState(false);
+	}
+	SelectedUnits.Empty(); // 배열 비우기
 
-		if (SelectedUnit) SelectedUnit->SetSelectionState(false); // 기존 선택 해제
-
-		if (NewUnit) // 유닛 클릭 시
-		{
-			SelectedUnit = NewUnit;
-			SelectedUnit->SetSelectionState(true);
-		}
-		else // 빈 땅 클릭 시
-		{
-			SelectedUnit = nullptr;
-		}
+	// HUD에게 그림 그릴 준비 명령
+	if (DefenceHUD)
+	{
+		DefenceHUD->bIsDragging = true;
+		float MouseX, MouseY;
+		GetMousePosition(MouseX, MouseY); // 현재 마우스 좌표
+		DefenceHUD->InitialPoint = FVector2D(MouseX, MouseY); // 시작점 저장
 	}
 }
 
+// 2. 드래그 중 (시각적 업데이트)
+void ADefencePlayerController::HandleSelectTriggered()
+{
+	if (DefenceHUD)
+	{
+		float MouseX, MouseY;
+		GetMousePosition(MouseX, MouseY);
+		DefenceHUD->CurrentPoint = FVector2D(MouseX, MouseY); // 끝점 계속 갱신
+	}
+}
+
+// 3. 마우스 뗌 (최종 선택)
+void ADefencePlayerController::HandleSelectComplete()
+{
+	if (DefenceHUD)
+	{
+		DefenceHUD->bIsDragging = false; // 드래그 시각 효과 끄기
+		DefenceHUD->bSelectPending = true; // 다음 프레임에 계산 명령
+	}
+}
+
+// 4. 이동 명령
 void ADefencePlayerController::HandleMove()
 {
-	if (!SelectedUnit) return;
+	if (SelectedUnits.Num() == 0) return;
 
 	FHitResult Hit;
 	GetHitResultUnderCursor(ECC_Visibility, false, Hit);
 
 	if (Hit.bBlockingHit)
 	{
-		// AI 네비게이션을 이용해 이동
-		UAIBlueprintHelperLibrary::SimpleMoveToLocation(SelectedUnit->GetController(), Hit.Location);
+		// 선택된 모든 유닛에게 움직임 명령
+		for (ABaseUnit* Unit : SelectedUnits)
+		{
+			if (Unit && Unit->GetController())
+			{
+				UAIBlueprintHelperLibrary::SimpleMoveToLocation(Unit->GetController(), Hit.Location);
+			}
+		}
 	}
 }
