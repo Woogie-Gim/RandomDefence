@@ -31,6 +31,20 @@ public:
 	// 스포너가 적을 소환할 때 길을 안내 하는 함수
 	void SetPath(USplineComponent* NewSpline);
 
+	// 체력 변수
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stat")
+	float MaxHP = 100;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Stat")
+	float CurrentHP;
+
+	// 죽었는지 확인하는 변수
+	bool bIsDead = false;
+
+	// 데미지 받는 함수 (외부에서 호출)
+	UFUNCTION(BlueprintCallable)
+	void OntakeDamage(float DamageAmount);
+
 protected:
 	// 이동 관련 변수
 	UPROPERTY()

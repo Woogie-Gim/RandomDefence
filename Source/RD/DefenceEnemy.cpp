@@ -16,13 +16,37 @@ ADefenceEnemy::ADefenceEnemy()
 void ADefenceEnemy::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	// 태어날 때 MaxHP
+	CurrentHP = MaxHP;
+	bIsDead = false;
 }
 
 void ADefenceEnemy::SetPath(USplineComponent* NewSpline)
 {
 	PathSpline = NewSpline;
 	CurrentDistance = 0.0f;	// 출발점으로 초기화
+}
+
+void ADefenceEnemy::OntakeDamage(float DamageAmount)
+{
+	if (bIsDead) return; // 이미 죽었으면 return
+
+	CurrentHP -= DamageAmount;
+
+	// 체력이 0 이하면 사망 처리
+	if (CurrentHP <= 0.0f)
+	{
+		CurrentHP = 0.0f;
+		bIsDead = true;
+
+		// 사망 로직
+
+		// 더 이상 이동하지 못하게 컨트롤러 해제
+		DetachFromControllerPendingDestroy();
+
+		// 충돌체 끄기 (시체에 공격이 막히지 않게)
+	}
 }
 
 // Called every frame
