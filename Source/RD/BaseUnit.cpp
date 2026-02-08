@@ -3,6 +3,7 @@
 #include "BaseUnit.h"
 #include "Components/DecalComponent.h"
 #include "Kismet/GameplayStatics.h" // 적들을 찾기 위해 추가
+#include "Projectile.h"				// 투사체를 인지하기 위해 추가
 
 // Sets default values
 ABaseUnit::ABaseUnit()
@@ -117,9 +118,36 @@ void ABaseUnit::FindTarget()
 
 void ABaseUnit::Attack()
 {
-	if (CurrentTarget)
+	// 타겟도 있고 투사체 클래스도 설정 되어 있어야 함
+	if (CurrentTarget && ProjectileClass)
 	{
-		// 투사체 없이 즉발 데미지 주기
-		CurrentTarget->OntakeDamage(AttackDamage);
+		// 공격 애니메이션 재생, 몽타주가 설정 되어 있다면 재생
+		if (AttackMontage)
+		{
+			PlayAnimMontage(AttackMontage);
+		}
+
+		// 발사 위치 (내 위치)와 회전 (적을 바라보는 방향)
+		FVector SpawnLocation = GetActorLocation();
+		FRotator SpawnRotation = (CurrentTarget->GetActorLocation() - SpawnLocation).Rotation();
+
+		// 소환 파라미터
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = this;
+		SpawnParams.Instigator = GetInstigator();
+
+		// 투사체 진짜로 소환
+		AProjectile* SpawnedProjectile = GetWorld()->SpawnActor<AProjectile>(
+			ProjectileClass,
+			SpawnLocation,
+			SpawnRotation,
+			SpawnParams
+		);
+
+		// 투사체에게 정보(타겟, 데미지) 전달
+		if (SpawnedProjectile)
+		{
+			SpawnedProjectile->Initialize(CurrentTarget, AttackDamage);
+		}
 	}
 }

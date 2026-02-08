@@ -9,6 +9,7 @@
 
 // 전방 선언
 class UDecalComponent; 
+class AProjectile;
 
 UCLASS()
 class RD_API ABaseUnit : public ACharacter
@@ -50,6 +51,14 @@ public:
 	// 내부 타이머
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	float AttackTimer = 0.0f;
+
+	// 블루프린트에서 설정할 투사체 클라스
+	UPROPERTY(EditDefaultsOnly, Category = "Combat")
+	TSubclassOf<AProjectile> ProjectileClass;
+
+	// 공격 애니메이션 몽타주
+	UPROPERTY(EditDefaultsOnly, Category = "Animation")
+	UAnimMontage* AttackMontage;
 
 	// 실제 공격함수
 	void FindTarget();

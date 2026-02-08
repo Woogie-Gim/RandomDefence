@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Materials/MaterialInstanceDynamic.h"
 #include "DefenceEnemy.generated.h"
 
 class USplineComponent;
@@ -43,7 +44,22 @@ public:
 
 	// 데미지 받는 함수 (외부에서 호출)
 	UFUNCTION(BlueprintCallable)
-	void OntakeDamage(float DamageAmount);
+	void OnTakeDamage(float DamageAmount);
+
+	// 사망 애니메이션 몽타주
+	UPROPERTY(EditDefaultsOnly, Category = "Animation")
+	UAnimMontage* DeathMontage;
+
+	// 투명도 조절 동적 머터리얼 인스턴스
+	UPROPERTY()
+	TObjectPtr<UMaterialInstanceDynamic> DynamicMaterial;
+
+	// 현재 투명도 값 (1.0 = 불투명, 0.0 = 투명)
+	float CurrentOpacity = 1.0f;
+
+	// 투명해지는 속도 (값이 클수록 빨리 사라짐)
+	UPROPERTY(EditAnywhere, Category = "Visuals")
+	float FadeOutSpeed = 0.5f;
 
 protected:
 	// 이동 관련 변수
