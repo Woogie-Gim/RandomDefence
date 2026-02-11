@@ -20,6 +20,9 @@ ABaseUnit::ABaseUnit()
 	// 데칼 -90도 회전
 	SelectionDecal->SetRelativeRotation(FRotator(-90.0f, 0.0f, 0.0f));
 	SelectionDecal->DecalSize = FVector(128.0f, 128.0f, 128.0f);
+
+	// AutoProssesAI 기본 설정
+	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 }
 
 // Called when the game starts or when spawned

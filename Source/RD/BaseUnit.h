@@ -62,7 +62,7 @@ public:
 
 	// 실제 공격함수
 	void FindTarget();
-	void Attack();
+	virtual void Attack();
 
 protected:
 	// 발 밑에 표시될 원
