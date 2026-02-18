@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Materials/MaterialInstanceDynamic.h"
+#include "Components/WidgetComponent.h" // 위젯 컴포넌트 헤더
 #include "DefenceEnemy.generated.h"
 
 class USplineComponent;
@@ -60,6 +61,10 @@ public:
 	// 투명해지는 속도 (값이 클수록 빨리 사라짐)
 	UPROPERTY(EditAnywhere, Category = "Visuals")
 	float FadeOutSpeed = 0.5f;
+	
+	// 체력바 Slate Widget 변수
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
+	TObjectPtr<UWidgetComponent> HPBarWidget;
 
 protected:
 	// 이동 관련 변수

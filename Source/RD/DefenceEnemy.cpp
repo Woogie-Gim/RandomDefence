@@ -4,6 +4,7 @@
 #include "DefenceEnemy.h"
 #include "Components/SplineComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "SEnemyHealthBar.h"
 
 // Sets default values
 ADefenceEnemy::ADefenceEnemy()
@@ -11,6 +12,18 @@ ADefenceEnemy::ADefenceEnemy()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true; // 이동을 위해 Tick = true
 
+	// 컴포넌트 생성
+	HPBarWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("HPBarWidget"));
+	HPBarWidget->SetupAttachment(RootComponent);
+
+	// 위치 잡기 (머리 위)
+	HPBarWidget->SetRelativeLocation(FVector(0.0f, 0.0f, 120.0f));
+
+	// 3D 월드가 아니라 2D 화면 (Screen)에 그림 (최적화)
+	HPBarWidget->SetWidgetSpace(EWidgetSpace::Screen);
+
+	// 드로우 사이즈 (화면에 그려질 크기)
+	HPBarWidget->SetDrawSize(FVector2D(80.0f, 10.0f));
 }
 
 // Called when the game starts or when spawned
@@ -31,6 +44,13 @@ void ADefenceEnemy::BeginPlay()
 	{
 		DynamicMaterial = UMaterialInstanceDynamic::Create(BaseMat, this);
 		GetMesh()->SetMaterial(0, DynamicMaterial); // 만든 동적 머터리얼로 교체
+	}
+
+	// 게임 시작시, Slate 위젯을 생성해서 컴포넌트에 끼워 넣음
+	if (HPBarWidget)
+	{
+		// 인자 넘겨주기
+		HPBarWidget->SetSlateWidget(SNew(SEnemyHealthBar).OwnerEnemy(this));
 	}
 }
 
