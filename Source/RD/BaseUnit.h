@@ -64,8 +64,20 @@ public:
 	void FindTarget();
 	virtual void Attack();
 
+	// 실제로 판매를 실행하는 함수 (UI의 판매 버튼을 누르면 호출될 예정)
+	UFUNCTION(BlueprintCallable, Category = "Economy")
+	void ExecuteSell();
+
 protected:
 	// 발 밑에 표시될 원
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Visuals")
 	TObjectPtr<UDecalComponent> SelectionDecal;
+
+	// 블루프린트에게 UI 띄우라고 명렴안 내릴 이벤트 (C++ 에선 구현 안함)
+	UFUNCTION(BlueprintImplementableEvent, Category = "UI")
+	void ShowSellUI();
+
+	// 블루프린트에게 UI 지우라고 명령하는 이벤트
+	UFUNCTION(BlueprintImplementableEvent, Category = "UI")
+	void HideSellUI();
 };

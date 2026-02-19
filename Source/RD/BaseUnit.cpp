@@ -4,6 +4,8 @@
 #include "Components/DecalComponent.h"
 #include "Kismet/GameplayStatics.h" // 적들을 찾기 위해 추가
 #include "Projectile.h"				// 투사체를 인지하기 위해 추가
+#include "DefenceGameMode.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 ABaseUnit::ABaseUnit()
@@ -85,6 +87,15 @@ void ABaseUnit::SetSelectionState(bool bIsSelected)
 	{
 		SelectionDecal->SetVisibility(bIsSelected);
 	}
+
+	if (bIsSelected == true)
+	{
+		ShowSellUI();  // 선택되면 띄운다
+	}
+	else		// 판매 UI 지우기 호출
+	{
+		HideSellUI();
+	}
 }
 
 void ABaseUnit::FindTarget()
@@ -153,4 +164,18 @@ void ABaseUnit::Attack()
 			SpawnedProjectile->Initialize(CurrentTarget, AttackDamage);
 		}
 	}
+}
+
+void ABaseUnit::ExecuteSell()
+{
+	// 게임 모드 가져오기
+	ADefenceGameMode* GM = Cast<ADefenceGameMode>(UGameplayStatics::GetGameMode(this));
+	if (GM)
+	{
+		// 판매 금액 환급
+		GM->AddGold(1);
+	}
+
+	// 유닛 삭제
+	Destroy();
 }

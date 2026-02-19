@@ -5,6 +5,8 @@
 #include "Components/SplineComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "SEnemyHealthBar.h"
+#include "DefenceGameMode.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 ADefenceEnemy::ADefenceEnemy()
@@ -73,6 +75,14 @@ void ADefenceEnemy::OnTakeDamage(float DamageAmount)
 		bIsDead = true;
 
 		// 사망 로직
+
+		// 현재 게임 모드를 가져와서 ADefenceGameMode로 Cast
+		ADefenceGameMode* GM = Cast<ADefenceGameMode>(UGameplayStatics::GetGameMode(this));
+		if (GM)
+		{
+			// 골드 1원 획득
+			GM->AddGold(1);
+		}
 
 		// 더 이상 공격받지 않게 충돌 끄기 (시체에 공격이 막히지 않게)
 		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);

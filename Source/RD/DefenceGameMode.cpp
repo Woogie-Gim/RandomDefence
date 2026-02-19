@@ -3,8 +3,35 @@
 #include "DefenceGameMode.h"
 #include "BaseUnit.h"
 
+void ADefenceGameMode::AddGold(int32 Amount)
+{
+	CurrentGold += Amount;
+}
+
+bool ADefenceGameMode::SpendGold(int32 Amount)
+{
+	// 가진 돈이 뽑기 비용보다 많거나 같으면 결제 승인
+	if (CurrentGold >= Amount)
+	{
+		CurrentGold -= Amount;
+		return true;
+	}
+
+	// 돈이 부족하면 결제 거부
+	return false;
+}
+
 void ADefenceGameMode::SpawnRandomUnit()
 {
+	// 결제 부터 진행 (돈이 부족하면 바로 컷)
+	if (!SpendGold(SpawnCost))
+	{
+		// 골드 부족 메세지
+
+		return;
+	}
+
+	// 결제에 성공했으면 기존처럼 스폰 진행
 	// 목록이 비어 있다면 아무것도 안 함
 	if (UnitPool.Num() == 0)
 	{
