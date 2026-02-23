@@ -3,6 +3,14 @@
 #include "DefenceGameMode.h"
 #include "BaseUnit.h"
 
+void ADefenceGameMode::BeginPlay()
+{
+	Super::BeginPlay();
+
+	// 60초 (1분)마다 StartNextWave 함수를 반복(true) 해서 실행하는 타이머 설정
+	GetWorldTimerManager().SetTimer(WaveTimerHandle, this, &ADefenceGameMode::StartNextWave, 60.0f, true);
+}
+
 void ADefenceGameMode::AddGold(int32 Amount)
 {
 	CurrentGold += Amount;
@@ -19,6 +27,46 @@ bool ADefenceGameMode::SpendGold(int32 Amount)
 
 	// 돈이 부족하면 결제 거부
 	return false;
+}
+
+void ADefenceGameMode::StartNextWave()
+{
+	// 웨이브 1 증가
+	CurrentWave++;
+}
+
+void ADefenceGameMode::AddEnemyCount()
+{
+	CurrentEnemyCount++;
+
+	// 맵에 적이 꽉 찼다면? > 게임 오버
+	if (CurrentEnemyCount >= MaxEnemyLimit)
+	{
+		GameOver();
+	}
+}
+
+void ADefenceGameMode::RemoveEnemyCount()
+{
+	CurrentEnemyCount--;
+
+	// 혹시라도 카운트가 꼬여서 마이너스가 되는 것을 방지
+	if (CurrentEnemyCount < 0) CurrentEnemyCount = 0;
+}
+
+float ADefenceGameMode::GetWaveTimeRemaining() const
+{
+	// WaveTimerHan1dle이 울리기 까지 몇 초 남았는지 변환 
+	return GetWorldTimerManager().GetTimerRemaining(WaveTimerHandle);
+}
+
+void ADefenceGameMode::GameOver()
+{
+	// 적들이 더 이상 안나오게 웨이브 타이머 끄기
+	GetWorldTimerManager().ClearTimer(WaveTimerHandle);
+
+	// 블루 프린트 이벤트 호출 (화면에 패배 UI 띄우기)
+	ShowGameOverUI();
 }
 
 void ADefenceGameMode::SpawnRandomUnit()

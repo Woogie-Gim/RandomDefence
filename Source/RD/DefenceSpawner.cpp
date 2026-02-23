@@ -4,7 +4,9 @@
 #include "DefenceSpawner.h"
 #include "DefenceEnemy.h"
 #include "DefencePath.h"
+#include "DefenceGameMode.h"
 #include "Components/SplineComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 ADefenceSpawner::ADefenceSpawner()
@@ -32,21 +34,46 @@ void ADefenceSpawner::SpawnEnemy()
 		return;
 	}
 
-	// 적 클래스와 경로가 설정되어 있는지 확인
-	if (!EnemyClass || !TargetPath) return;
+	// 경로가 설정되어 있는지 확인 (EnemyClass 확인은 아래에서 통합 처리)
+	if (!TargetPath) return;
 
 	// 스폰 위치 : 경로의 시작점 (0.0f)
 	FVector SpawnLoc = TargetPath->SplineComponet->GetLocationAtDistanceAlongSpline(0.0f, ESplineCoordinateSpace::World);
 	FRotator SpawnRot = TargetPath->SplineComponet->GetRotationAtDistanceAlongSpline(0.0f, ESplineCoordinateSpace::World);
 
-	// 소환
-	ADefenceEnemy* NewEnemy = GetWorld()->SpawnActor<ADefenceEnemy>(EnemyClass, SpawnLoc, SpawnRot);
+	// 게임모드 가져오기
+	ADefenceGameMode* GM = Cast<ADefenceGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
 
+	// 소환할 클래스 변수 (기본값은 스포너에 세팅된 EnemyClass)
+	TSubclassOf<ADefenceEnemy> ClassToSpawn = EnemyClass;
+
+	// 게임모드가 있고, 웨이브 배열에 값이 있다면 웨이브 클래스로 덮어쓰기!
+	if (GM && GM->WaveEnemyClasses.Num() > 0)
+	{
+		int32 ClassIndex = FMath::Clamp(GM->CurrentWave - 1, 0, GM->WaveEnemyClasses.Num() - 1);
+		ClassToSpawn = GM->WaveEnemyClasses[ClassIndex];
+	}
+
+	// 최종적으로 소환할 클래스가 비어있으면 중단
+	if (!ClassToSpawn) return;
+
+	// 스폰 실행
+	ADefenceEnemy* NewEnemy = GetWorld()->SpawnActor<ADefenceEnemy>(ClassToSpawn, SpawnLoc, SpawnRot);
+
+	// 스폰에 성공했다면 각종 세팅 적용
 	if (NewEnemy)
 	{
-		// 길을 따라가게 명령
+		// 1. 길을 따라가게 명령
 		NewEnemy->SetPath(TargetPath->SplineComponet);
+
+		// 2. 스포너 내부 생성 카운트 증가
 		CurrentSpawnCount++;
+
+		// 3. 게임모드의 전체 유닛 카운트 증가
+		if (GM)
+		{
+			GM->AddEnemyCount();
+		}
 	}
 }
 

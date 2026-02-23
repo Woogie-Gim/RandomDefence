@@ -82,6 +82,8 @@ void ADefenceEnemy::OnTakeDamage(float DamageAmount)
 		{
 			// 골드 1원 획득
 			GM->AddGold(1);
+			// 사망 시 카운트 1 깎기
+			GM->RemoveEnemyCount();
 		}
 
 		// 더 이상 공격받지 않게 충돌 끄기 (시체에 공격이 막히지 않게)
